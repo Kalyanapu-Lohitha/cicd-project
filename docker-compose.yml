@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  app-dev:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=sqlite:///taskmanager_dev.db
+    volumes:
+      - ./app:/app
+    profiles: ["dev"]
+
+  app-staging:
+    build: .
+    ports:
+      - "5001:5000"
+    environment:
+      - FLASK_ENV=staging
+      - DATABASE_URL=sqlite:///taskmanager_staging.db
+    profiles: ["staging"]
+
+  app-prod:
+    build: .
+    ports:
+      - "5002:5000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=sqlite:///taskmanager_prod.db
+    profiles: ["prod"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    profiles: ["dev", "staging", "prod"]
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    profiles: ["dev", "staging", "prod"]
