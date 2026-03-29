@@ -1,0 +1,112 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #f4f6fb;
+  --surface:   #ffffff;
+  --border:    #e2e8f0;
+  --text:      #1a202c;
+  --muted:     #718096;
+  --primary:   #4f46e5;
+  --primary-h: #4338ca;
+  --high:      #e53e3e;
+  --medium:    #d97706;
+  --low:       #38a169;
+  --done-clr:  #38a169;
+  --prog-clr:  #4f46e5;
+  --pend-clr:  #d97706;
+  --radius:    10px;
+}
+
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; }
+
+/* ── Auth pages ── */
+.auth-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; }
+.auth-logo { text-align: center; margin-bottom: 28px; }
+.auth-logo h1 { font-size: 24px; font-weight: 700; color: var(--primary); margin: 10px 0 4px; }
+.auth-logo p { color: var(--muted); font-size: 13px; }
+.auth-switch { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
+.auth-switch a { color: var(--primary); text-decoration: none; font-weight: 500; }
+
+/* ── Logo icon ── */
+.logo-icon { width: 44px; height: 44px; background: var(--primary); border-radius: 12px; margin: 0 auto; }
+.logo-icon.small { width: 28px; height: 28px; border-radius: 8px; margin: 0; }
+
+/* ── Navbar ── */
+.navbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 58px; display: flex; align-items: center; justify-content: space-between; }
+.nav-brand { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: var(--primary); }
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-user { font-size: 13px; color: var(--muted); }
+
+/* ── Container ── */
+.container { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+
+/* ── Stats ── */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; }
+.stat-card.pending  { border-top: 3px solid var(--pend-clr); }
+.stat-card.progress { border-top: 3px solid var(--prog-clr); }
+.stat-card.done     { border-top: 3px solid var(--done-clr); }
+.stat-num { font-size: 32px; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── Card ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+.card h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+/* ── Forms ── */
+.form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+.form-group.flex-2 { flex: 2; }
+.form-group label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+input[type=text], input[type=password], input[type=date], select {
+  border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 14px;
+  background: var(--bg); color: var(--text); outline: none; width: 100%;
+}
+input:focus, select:focus { border-color: var(--primary); background: #fff; }
+
+/* ── Buttons ── */
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 9px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: background .15s; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-h); }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--bg); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-danger { background: #fff0f0; color: var(--high); border: 1px solid #fecaca; }
+.full-width { width: 100%; }
+
+/* ── Messages ── */
+.msg { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 10px; }
+.msg.hidden { display: none; }
+.msg.error   { background: #fff0f0; color: var(--high); border: 1px solid #fecaca; }
+.msg.success { background: #f0fff4; color: var(--done-clr); border: 1px solid #c6f6d5; }
+
+/* ── Filter bar ── */
+.filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-right: 4px; }
+.filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; cursor: pointer; color: var(--muted); transition: all .15s; }
+.filter-btn.active, .filter-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ── Task list ── */
+.task-list { display: flex; flex-direction: column; gap: 12px; }
+.task-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: flex-start; gap: 14px; }
+.task-card.done-task { opacity: .6; }
+.task-check { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 50%; cursor: pointer; flex-shrink: 0; margin-top: 2px; transition: all .15s; display: flex; align-items: center; justify-content: center; }
+.task-check.checked { background: var(--done-clr); border-color: var(--done-clr); }
+.task-check.checked::after { content: ''; display: block; width: 5px; height: 9px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); }
+.task-body { flex: 1; }
+.task-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+.task-title.crossed { text-decoration: line-through; color: var(--muted); }
+.task-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.badge { padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-high    { background: #fff0f0; color: var(--high); }
+.badge-medium  { background: #fffbeb; color: var(--medium); }
+.badge-low     { background: #f0fff4; color: var(--low); }
+.badge-pending    { background: #fffbeb; color: var(--medium); }
+.badge-in_progress { background: #eff6ff; color: var(--prog-clr); }
+.badge-done       { background: #f0fff4; color: var(--done-clr); }
+.task-due { font-size: 11px; color: var(--muted); }
+.task-desc { font-size: 13px; color: var(--muted); margin-top: 5px; }
+.task-actions { display: flex; gap: 6px; }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-state p { margin-top: 8px; font-size: 14px; }
