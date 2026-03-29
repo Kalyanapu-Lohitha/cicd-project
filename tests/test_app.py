@@ -1,5 +1,5 @@
 import pytest
-from app import app as flask_app
+from app.app import app as flask_app
 from models import db, User, Task, Category
 
 @pytest.fixture
