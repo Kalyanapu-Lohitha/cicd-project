@@ -1,6 +1,4 @@
-import pytest, sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'app'))
-
+import pytest
 from app import app as flask_app
 from models import db, User, Task, Category
 
