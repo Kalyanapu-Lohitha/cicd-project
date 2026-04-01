@@ -98,6 +98,7 @@ pipeline {
             steps {
                 echo '=== Stage 7: Smoke testing the container ==='
                 sh '''
+                    docker rm -f smoke-test || true
                     docker run -d --name smoke-test -p 5099:5000 lohitha30285/cicd-project:latest
                     sleep 8
                     curl --fail --retry 3 http://localhost:5099/health
