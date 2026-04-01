@@ -101,7 +101,7 @@ pipeline {
                     docker rm -f smoke-test || true
                     docker run -d --name smoke-test -p 5099:5000 lohitha30285/cicd-project:latest
                     sleep 8
-                    curl --fail --retry 3 http://localhost:5099/health
+                    curl --fail --retry 3 http://host.docker.internal:5099/health
                     docker stop smoke-test && docker rm smoke-test
                     echo "Smoke test PASSED"
                 '''
