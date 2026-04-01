@@ -6,7 +6,7 @@ import time, os
 
 app = Flask(__name__)
 app.config['SECRET_KEY']           = 'dev-secret-key-change-in-prod'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///taskmanager.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/taskmanager.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
