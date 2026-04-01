@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.11-slim'
-            args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
-        }
-    }
+    agent none
 
     environment {
         DOCKER_IMAGE    = 'lohitha30285/cicd-project'
@@ -15,6 +10,12 @@ pipeline {
     stages {
 
         stage('Checkout') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                }
+            }
             steps {
                 echo '=== Stage 1: Checking out source code ==='
                 checkout scm
@@ -23,6 +24,12 @@ pipeline {
         }
 
         stage('Install Dependencies') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                }
+            }
             steps {
                 echo '=== Stage 2: Installing Python dependencies ==='
                 sh '''
@@ -34,6 +41,12 @@ pipeline {
         }
 
         stage('Code Quality — Lint') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                }
+            }
             steps {
                 echo '=== Stage 3: Running flake8 code quality check ==='
                 sh '''
@@ -45,9 +58,17 @@ pipeline {
         }
 
         stage('Run Tests') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                }
+            }
             steps {
                 echo '=== Stage 4: Running all 15 test cases ==='
                 sh '''
+                    pip install -q -r app/requirements.txt
+                    pip install -q pytest-cov flake8
                     pytest tests/ \
                         -v \
                         --tb=short \
@@ -66,6 +87,12 @@ pipeline {
         }
 
         stage('Security Scan — Bandit') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                }
+            }
             steps {
                 echo '=== Stage 5: Running security scan ==='
                 sh '''
@@ -82,6 +109,12 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                }
+            }
             steps {
                 echo '=== Stage 6: Building Docker image ==='
                 sh '''
@@ -95,9 +128,16 @@ pipeline {
         }
 
         stage('Smoke Test Container') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                }
+            }
             steps {
                 echo '=== Stage 7: Smoke testing the container ==='
                 sh '''
+                    apt-get install -y -qq curl > /dev/null || true
                     docker rm -f smoke-test || true
                     docker run -d --name smoke-test -p 5099:5000 lohitha30285/cicd-project:latest
                     sleep 8
@@ -109,6 +149,12 @@ pipeline {
         }
 
         stage('Push to Docker Hub') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                }
+            }
             steps {
                 echo '=== Stage 8: Pushing image to Docker Hub ==='
                 withCredentials([usernamePassword(
@@ -117,6 +163,7 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
+                        apt-get install -y -qq docker.io > /dev/null || true
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
                         docker push ${DOCKER_IMAGE}:latest
@@ -127,44 +174,44 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-    steps {
-        echo '=== Stage 9: Deploying to Kubernetes (Minikube) ==='
-        sh '''
-            curl -LO "https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl" -o kubectl || true
-            chmod +x kubectl && mv kubectl /usr/local/bin/ || true
-            kubectl version --client || true
+            agent { label 'built-in' }
+            steps {
+                echo '=== Stage 9: Deploying to Kubernetes (Minikube) ==='
+                sh '''
+                    export KUBECONFIG=/var/jenkins_home/.kube/config
 
-            export KUBECONFIG=/var/jenkins_home/.kube/config
+                    which kubectl || (curl -LO "https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl" && chmod +x kubectl && mv kubectl /usr/local/bin/)
 
-            sed -i "s|IMAGE_TAG|${DOCKER_TAG}|g" k8s/deployment.yml
-            kubectl apply -f k8s/namespace.yml
-            kubectl apply -f k8s/deployment.yml
-            kubectl apply -f k8s/service.yml
-            kubectl apply -f k8s/hpa.yml
+                    sed -i "s|IMAGE_TAG|${DOCKER_TAG}|g" k8s/deployment.yml
+                    kubectl apply -f k8s/namespace.yml
+                    kubectl apply -f k8s/deployment.yml
+                    kubectl apply -f k8s/service.yml
+                    kubectl apply -f k8s/hpa.yml
 
-            kubectl rollout status deployment/taskflow-deployment \
-                -n taskflow --timeout=120s || true
+                    kubectl rollout status deployment/taskflow-deployment \
+                        -n taskflow --timeout=120s
 
-            echo "Deployment complete"
-            kubectl get pods -n taskflow
-            kubectl get svc  -n taskflow
-        '''
-    }
-}
+                    echo "Deployment complete"
+                    kubectl get pods -n taskflow
+                    kubectl get svc  -n taskflow
+                '''
+            }
+        }
 
         stage('Verify Deployment') {
-    steps {
-        echo '=== Stage 10: Verifying deployment health ==='
-        sh '''
-            export KUBECONFIG=/var/jenkins_home/.kube/config
-            sleep 10
-            kubectl get pods -n taskflow -o wide     || true
-            kubectl get deployments -n taskflow       || true
-            kubectl describe svc taskflow-service -n taskflow || true
-            echo "Deployment verified successfully"
-        '''
-    }
-}
+            agent { label 'built-in' }
+            steps {
+                echo '=== Stage 10: Verifying deployment health ==='
+                sh '''
+                    export KUBECONFIG=/var/jenkins_home/.kube/config
+                    sleep 10
+                    kubectl get pods -n taskflow -o wide     || true
+                    kubectl get deployments -n taskflow       || true
+                    kubectl describe svc taskflow-service -n taskflow || true
+                    echo "Deployment verified successfully"
+                '''
+            }
+        }
     }
 
     post {
@@ -200,7 +247,9 @@ pipeline {
             )
         }
         always {
-            cleanWs()
+            node('built-in') {
+                cleanWs()
+            }
         }
     }
 }
