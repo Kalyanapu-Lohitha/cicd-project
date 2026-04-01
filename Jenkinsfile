@@ -127,41 +127,44 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-            steps {
-                echo '=== Stage 9: Deploying to Kubernetes (Minikube) ==='
-                sh '''
-                    curl -LO "https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl" -o kubectl || true
-                    chmod +x kubectl && mv kubectl /usr/local/bin/ || true
-                    kubectl version --client || true
+    steps {
+        echo '=== Stage 9: Deploying to Kubernetes (Minikube) ==='
+        sh '''
+            curl -LO "https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl" -o kubectl || true
+            chmod +x kubectl && mv kubectl /usr/local/bin/ || true
+            kubectl version --client || true
 
-                    sed -i "s|IMAGE_TAG|${DOCKER_TAG}|g" k8s/deployment.yml
-                    kubectl apply -f k8s/namespace.yml     || true
-                    kubectl apply -f k8s/deployment.yml    || true
-                    kubectl apply -f k8s/service.yml       || true
-                    kubectl apply -f k8s/hpa.yml           || true
+            export KUBECONFIG=/var/jenkins_home/.kube/config
 
-                    kubectl rollout status deployment/taskflow-deployment \
-                        -n taskflow --timeout=120s || true
+            sed -i "s|IMAGE_TAG|${DOCKER_TAG}|g" k8s/deployment.yml
+            kubectl apply -f k8s/namespace.yml
+            kubectl apply -f k8s/deployment.yml
+            kubectl apply -f k8s/service.yml
+            kubectl apply -f k8s/hpa.yml
 
-                    echo "Deployment complete"
-                    kubectl get pods -n taskflow || true
-                    kubectl get svc  -n taskflow || true
-                '''
-            }
-        }
+            kubectl rollout status deployment/taskflow-deployment \
+                -n taskflow --timeout=120s || true
+
+            echo "Deployment complete"
+            kubectl get pods -n taskflow
+            kubectl get svc  -n taskflow
+        '''
+    }
+}
 
         stage('Verify Deployment') {
-            steps {
-                echo '=== Stage 10: Verifying deployment health ==='
-                sh '''
-                    sleep 10
-                    kubectl get pods -n taskflow -o wide     || true
-                    kubectl get deployments -n taskflow       || true
-                    kubectl describe svc taskflow-service -n taskflow || true
-                    echo "Deployment verified successfully"
-                '''
-            }
-        }
+    steps {
+        echo '=== Stage 10: Verifying deployment health ==='
+        sh '''
+            export KUBECONFIG=/var/jenkins_home/.kube/config
+            sleep 10
+            kubectl get pods -n taskflow -o wide     || true
+            kubectl get deployments -n taskflow       || true
+            kubectl describe svc taskflow-service -n taskflow || true
+            echo "Deployment verified successfully"
+        '''
+    }
+}
     }
 
     post {

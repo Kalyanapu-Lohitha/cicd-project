@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: taskflow
-        image: YOUR_DOCKERHUB_USERNAME/cicd-project:IMAGE_TAG
+        image: lohitha30285/cicd-project:IMAGE_TAG
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
