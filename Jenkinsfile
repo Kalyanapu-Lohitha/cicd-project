@@ -136,13 +136,13 @@ pipeline {
             steps {
                 echo '=== Stage 7: Smoke testing the container ==='
                 sh '''
-                    docker rm -f smoke-test || true
-                    docker run -d --name smoke-test -p 5099:5000 lohitha30285/cicd-project:latest
-                    sleep 8
-                    wget -qO- http://host.docker.internal:5099/health
-                    docker stop smoke-test && docker rm smoke-test
-                    echo "Smoke test PASSED"
-                '''
+    docker rm -f smoke-test || true
+    docker run -d --name smoke-test -p 5099:5000 lohitha30285/cicd-project:latest
+    sleep 8
+    docker exec smoke-test wget -qO- http://localhost:5000/health
+    docker stop smoke-test && docker rm smoke-test
+    echo "Smoke test PASSED"
+'''
             }
         }
 
