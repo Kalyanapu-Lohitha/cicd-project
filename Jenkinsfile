@@ -139,7 +139,7 @@ pipeline {
     docker rm -f smoke-test || true
     docker run -d --name smoke-test -p 5099:5000 lohitha30285/cicd-project:latest
     sleep 8
-    docker exec smoke-test curl -f http://localhost:5000/health
+    docker exec smoke-test python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"
     docker stop smoke-test && docker rm smoke-test
     echo "Smoke test PASSED"
 '''
