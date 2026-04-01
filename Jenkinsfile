@@ -33,7 +33,6 @@ pipeline {
             steps {
                 echo '=== Stage 2: Installing Python dependencies ==='
                 sh '''
-                    apt-get update -qq && apt-get install -y -qq curl apt-transport-https > /dev/null
                     pip install -q -r app/requirements.txt
                     pip install -q pytest-cov flake8
                 '''
@@ -50,6 +49,7 @@ pipeline {
             steps {
                 echo '=== Stage 3: Running flake8 code quality check ==='
                 sh '''
+                    pip install -q flake8
                     flake8 app/ --max-line-length=120 \
                         --exclude=__pycache__,migrations \
                         --format=default || true
@@ -68,7 +68,7 @@ pipeline {
                 echo '=== Stage 4: Running all 15 test cases ==='
                 sh '''
                     pip install -q -r app/requirements.txt
-                    pip install -q pytest-cov flake8
+                    pip install -q pytest-cov
                     pytest tests/ \
                         -v \
                         --tb=short \
@@ -111,16 +111,15 @@ pipeline {
         stage('Build Docker Image') {
             agent {
                 docker {
-                    image 'python:3.11-slim'
+                    image 'docker:24'
                     args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
                 }
             }
             steps {
                 echo '=== Stage 6: Building Docker image ==='
                 sh '''
-                    apt-get install -y -qq docker.io > /dev/null || true
                     docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
-                    docker tag  ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
+                    docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
                     echo "Image built: ${DOCKER_IMAGE}:${DOCKER_TAG}"
                     docker images | grep ${DOCKER_IMAGE}
                 '''
@@ -130,18 +129,17 @@ pipeline {
         stage('Smoke Test Container') {
             agent {
                 docker {
-                    image 'python:3.11-slim'
+                    image 'docker:24'
                     args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
                 }
             }
             steps {
                 echo '=== Stage 7: Smoke testing the container ==='
                 sh '''
-                    apt-get install -y -qq curl > /dev/null || true
                     docker rm -f smoke-test || true
                     docker run -d --name smoke-test -p 5099:5000 lohitha30285/cicd-project:latest
                     sleep 8
-                    curl --fail --retry 3 http://host.docker.internal:5099/health
+                    wget -qO- http://host.docker.internal:5099/health
                     docker stop smoke-test && docker rm smoke-test
                     echo "Smoke test PASSED"
                 '''
@@ -151,7 +149,7 @@ pipeline {
         stage('Push to Docker Hub') {
             agent {
                 docker {
-                    image 'python:3.11-slim'
+                    image 'docker:24'
                     args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
                 }
             }
@@ -163,7 +161,6 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
-                        apt-get install -y -qq docker.io > /dev/null || true
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
                         docker push ${DOCKER_IMAGE}:latest
@@ -205,8 +202,8 @@ pipeline {
                 sh '''
                     export KUBECONFIG=/var/jenkins_home/.kube/config
                     sleep 10
-                    kubectl get pods -n taskflow -o wide     || true
-                    kubectl get deployments -n taskflow       || true
+                    kubectl get pods -n taskflow -o wide      || true
+                    kubectl get deployments -n taskflow        || true
                     kubectl describe svc taskflow-service -n taskflow || true
                     echo "Deployment verified successfully"
                 '''
