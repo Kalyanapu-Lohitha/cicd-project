@@ -126,25 +126,22 @@ pipeline {
             }
         }
 
-        stage('Smoke Test Container') {
-            agent {
-                docker {
-                    image 'docker:24'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
-                }
-            }
-            steps {
-                echo '=== Stage 7: Smoke testing the container ==='
-                sh '''
-    docker rm -f smoke-test || true
-    docker run -d --name smoke-test -p 5099:5000 lohitha30285/cicd-project:latest
-    sleep 8
-    docker exec smoke-test python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"
-    docker stop smoke-test && docker rm smoke-test
-    echo "Smoke test PASSED"
-'''
-            }
-        }
+    stage('Smoke Test Container') {
+    steps {
+        echo '=== Stage 7: Smoke testing the container ==='
+        sh '''
+            docker rm -f smoke-test || true
+            docker run -d --name smoke-test -p 5099:5000 lohitha30285/cicd-project:latest
+            sleep 10
+            docker run --rm --network host curlimages/curl:latest \
+                curl --fail --retry 5 --retry-delay 3 --retry-connrefused \
+                http://localhost:5099/health
+            docker stop smoke-test || true
+            docker rm smoke-test || true
+            echo "Smoke test PASSED"
+        '''
+    }
+}
 
         stage('Push to Docker Hub') {
             agent {
