@@ -126,7 +126,13 @@ pipeline {
             }
         }
 
-    stage('Smoke Test Container') {
+stage('Smoke Test Container') {
+    agent {
+        docker {
+            image 'docker:24'
+            args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+        }
+    }
     steps {
         echo '=== Stage 7: Smoke testing the container ==='
         sh '''
